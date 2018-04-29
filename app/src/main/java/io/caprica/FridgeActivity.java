@@ -2,11 +2,20 @@ package io.caprica;
 
 import android.annotation.SuppressLint;
 import android.graphics.Color;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.graphics.drawable.ArgbEvaluator;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.TextView;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 /**
  * Created by mbukowski on 28.04.18.
@@ -53,6 +62,16 @@ public class FridgeActivity extends AppCompatActivity {
     protected int[] quality3 = {40, 35, 33, 0, 54, 27, 80,  77, 37, 75};
     protected int[] quantity3 = {3, 1, 2, 4, 2, 3, 5, 2, 1, 5};
 
+    protected TextView textViewDay;
+
+    protected TextView textViewQA1;
+    protected TextView textViewQA2;
+    protected TextView textViewQA3;
+
+    protected TextView textViewQN1;
+    protected TextView textViewQN2;
+    protected TextView textViewQN3;
+
     @SuppressLint("RestrictedApi")
     protected ArgbEvaluator argb = new ArgbEvaluator();
 
@@ -63,34 +82,37 @@ public class FridgeActivity extends AppCompatActivity {
 //        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
 //        setSupportActionBar(toolbar);
 
+        textViewDay = findViewById(R.id.simpleTextViewDay);
+
+        textViewQA1 = findViewById(R.id.quality1);
+        textViewQA2 = findViewById(R.id.quality2);
+        textViewQA3 = findViewById(R.id.quality3);
+
+        textViewQN1 = findViewById(R.id.quantity1);
+        textViewQN2 = findViewById(R.id.quantity2);
+        textViewQN3 = findViewById(R.id.quantity3);
+
         updateValues();
     }
 
 
     protected void updateValues() {
-        TextView textViewQA1 = findViewById(R.id.quality1);
         textViewQA1.setText("" + quality1[day] + "%");
         textViewQA1.setTextColor(Color.parseColor(colourCode(quality1[day])));
-
-        TextView textViewQN1 = findViewById(R.id.quantity1);
         textViewQN1.setText("" + quantity1[day]);
 
-        TextView textViewQA2 = findViewById(R.id.quality2);
         textViewQA2.setText("" + quality2[day] + "%");
         textViewQA2.setTextColor(Color.parseColor(colourCode(quality2[day])));
-
-        TextView textViewQN2 = findViewById(R.id.quantity2);
         textViewQN2.setText("" + quantity2[day]);
 
-        TextView textViewQA3 = findViewById(R.id.quality3);
         textViewQA3.setText("" + quality3[day] + "%");
         textViewQA3.setTextColor(Color.parseColor(colourCode(quality3[day])));
-
-        TextView textViewQN3 = findViewById(R.id.quantity3);
         textViewQN3.setText("" + quantity3[day]);
 
-        TextView textViewDay = findViewById(R.id.simpleTextViewDay);
         textViewDay.setText("DAY " + (day + 1));
+
+        MyAsync myAsync = new MyAsync();
+        myAsync.execute();
     }
 
     public void nextDay(View view) {
@@ -106,6 +128,94 @@ public class FridgeActivity extends AppCompatActivity {
         return COLOR_PALETTE[id];
     }
 
+
+    protected String getData() {
+        String result = "";
+
+        try {
+            URL url = new URL("http://caprica451.herokuapp.com/day/" + (day + 1));
+            HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+
+            InputStream in = new BufferedInputStream(urlConnection.getInputStream());
+            result = inputStreamToString(in);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return result;
+    }
+
+    private String inputStreamToString(InputStream is) {
+        String rLine = "";
+        StringBuilder answer = new StringBuilder();
+
+        InputStreamReader isr = new InputStreamReader(is);
+
+        BufferedReader rd = new BufferedReader(isr);
+
+        try {
+            while ((rLine = rd.readLine()) != null) {
+                answer.append(rLine);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return answer.toString();
+    }
+
+    class MyAsync extends AsyncTask<Void, Void, String> {
+
+        protected String result;
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected String doInBackground(Void... voids) {
+            String result = "FOO";
+            try {
+                URL url = new URL("http://caprica451.herokuapp.com/day/" + (day + 1));
+                HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+
+                InputStream in = new BufferedInputStream(urlConnection.getInputStream());
+                result = inputStreamToString(in);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return result;
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+
+//            textViewDay.setText("DAY " + s);
+//            progressDialog.dismiss();
+//            try {
+//                JSONObject jsonObject = new JSONObject(s);
+//                JSONArray jsonArray = jsonObject.getJSONArray("contacts");
+//                for (int i = 0; i < jsonArray.length(); i++) {
+//                    String id = jsonArray.getJSONObject(i).getString("id");
+//                    String name = jsonArray.getJSONObject(i).getString("name");
+//                    String email = jsonArray.getJSONObject(i).getString("email");
+//
+//                    String mobile = jsonArray.getJSONObject(i).getJSONObject("phone").getString("mobile");
+//
+//                    textView.append(id + "\n");
+//                    textView.append(name + "\n");
+//                    textView.append(email + "\n");
+//                    textView.append(mobile + "\n\n");
+//
+//                }
+//
+//            } catch (JSONException e) {
+//                e.printStackTrace();
+//            }
+
+        }
+    }
 
 
 }
