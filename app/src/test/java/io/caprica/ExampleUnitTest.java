@@ -1,4 +1,4 @@
-package io.caprica.caprica;
+package io.caprica;
 
 import org.junit.Test;
 

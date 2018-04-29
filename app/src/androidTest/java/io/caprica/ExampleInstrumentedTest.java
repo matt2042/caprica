@@ -1,4 +1,4 @@
-package io.caprica.caprica;
+package io.caprica;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
